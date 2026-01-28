@@ -15,8 +15,8 @@ import { stripeWebHooks } from './controllers/orderController.js';
 
 
 const app = express();
-const port = process.env.PORT || 4000;
 app.set('trust proxy', 1);
+const port = process.env.PORT || 4000;
 
 await connectDB()
 await connectCloudinary()
