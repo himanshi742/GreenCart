@@ -4,20 +4,55 @@ import stripe from "stripe";
 import User from "../models/User.js";
 
 //Place Order: /api/order/cod
-export const placeOrderCOD = async (req,res)=>{
+// export const placeOrderCOD = async (req,res)=>{
+//     try {
+//         const { userId, items, address } = req.body;
+//         if(!address || items.length === 0){
+//             return res.json({success: true, message: "Invaild data"})
+//         }
+//         //Calculate amount using items
+//         let amount = await items.reduce(async (acc, item)=>{
+//             const product = await Product.findById(item.product);
+//             return (await acc) + product.offerPrice * item.quantity;
+//         }, 0)
+
+//         //add tax charge (2%)
+//         amount += Math.floor(amount * 0.02);
+//         await Order.create({
+//             userId,
+//             items,
+//             amount,
+//             address,
+//             paymentType: "COD",
+//         });
+//         return res.json({success: true, message: "Order Placed Successfully!"})
+//     } catch (error) {
+//         res.json({success: false, message: error.message});
+//     }
+// }
+
+
+// Place Order: /api/order/cod
+export const placeOrderCOD = async (req, res) => {
     try {
-        const { userId, items, address } = req.body;
-        if(!address || items.length === 0){
-            return res.json({success: true, message: "Invaild data"})
+        // FIX: Remove userId from req.body
+        const { items, address } = req.body;
+        // FIX: Get userId from middleware
+        const userId = req.userId;
+
+        if (!address || items.length === 0) {
+            return res.json({ success: true, message: "Invalid data" });
         }
-        //Calculate amount using items
-        let amount = await items.reduce(async (acc, item)=>{
+
+        // Calculate amount using items
+        let amount = await items.reduce(async (acc, item) => {
             const product = await Product.findById(item.product);
             return (await acc) + product.offerPrice * item.quantity;
-        }, 0)
+        }, 0);
 
-        //add tax charge (2%)
+        // Add tax charge (2%)
         amount += Math.floor(amount * 0.02);
+
         await Order.create({
             userId,
             items,
@@ -25,11 +60,12 @@ export const placeOrderCOD = async (req,res)=>{
             address,
             paymentType: "COD",
         });
-        return res.json({success: true, message: "Order Placed Successfully!"})
+
+        return res.json({ success: true, message: "Order Placed Successfully!" });
     } catch (error) {
-        res.json({success: false, message: error.message});
+        res.json({ success: false, message: error.message });
     }
-}
+};
 
 //Place Order Stripe: /api/order/stripe
 export const placeOrderStripe = async (req,res)=>{
@@ -101,7 +137,6 @@ export const placeOrderStripe = async (req,res)=>{
     }
 }
 
-
 // Stripe webHooks to verify payments actions: /stripe
 export const stripeWebHooks = async (request, response)=>{
     //Stripe Gateway Initialize
@@ -158,17 +193,15 @@ export const stripeWebHooks = async (request, response)=>{
     response.json({received: true})
 }
 
-//Get orders by user Id: /api/order/user
 // Get orders by user Id: /api/order/user
 export const getUserOrders = async (req, res) => {
     try {
-        // FIX: Get userId from req.userId (from middleware), NOT req.body
         const userId = req.userId; 
 
-        const orders = await Order.find({
-            userId,
-            $or: [{ paymentType: "COD" }, { isPaid: true }]
-        }).populate("items.product address").sort({ createdAt: -1 });
+        // FIX: Removed the $or condition to fetch EVERYTHING for this user
+        const orders = await Order.find({ userId })
+            .populate("items.product address")
+            .sort({ createdAt: -1 });
 
         return res.json({ success: true, orders });
     } catch (error) {
