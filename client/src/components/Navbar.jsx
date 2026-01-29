@@ -38,7 +38,7 @@ const Navbar = () => {
       <div className="hidden sm:flex items-center gap-6 text-sm ml-auto">
         <NavLink to="/">Home</NavLink>
         <NavLink to="/Products">All Products</NavLink>
-        <NavLink to="/">Contact</NavLink>
+        <NavLink to="/contact">Contact</NavLink>
 
         <div className="hidden lg:flex items-center text-sm gap-1 border border-gray-300 px-3 rounded-full">
           <input onChange={(e)=> setSearchQuery(e.target.value)}
